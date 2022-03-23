@@ -1,10 +1,12 @@
 import string
 import figure as figs
+import os
 
-
+DEBUG = True
+ 
 class field():
     """ Chess field class """
-
+    
     _black_bg = "\u001b[40m\u001b[37m"
     _white_bg = "\u001b[47m\u001b[30m"
     _col_names = 'abcdefgh'
@@ -34,9 +36,11 @@ class field():
 
             field['d'][row] = figs.Queen(color, 'd'+row, 'Q')
             field['e'][row] = figs.King(color, 'e'+row, 'K')
+
         self._field = field
 
     def _render_board(self, show_possible=0):
+        os.system("clear")
         possible_move_bg = "\u001b[43m"
 
         print(self._black_bg)

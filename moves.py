@@ -99,7 +99,7 @@ class Moves_history():
         return (fr_to, moved_piece, capt_piece)
 
 class ImpossibleMove(Exception):
-        pass
+    pass
 
 class UndoMove(Exception):
     pass

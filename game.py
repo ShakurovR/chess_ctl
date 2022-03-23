@@ -6,6 +6,8 @@ from copy import deepcopy
 from moves import ImpossibleMove, UndoMove
 
 class Chess(field):
+    start_seq  = ['e2','e4','e7','e5','d1','h5','a7','a6','f1','c4','a6','a5'][::-1]
+    # start_seq = []
     def __init__(self):
         self.move = 1
         self.turn = "white"
@@ -84,8 +86,32 @@ class Chess(field):
         return False
 
     def _check_for_mate(self, color):
-        # Not Implemented (yet)
-        return 0
+        king_piece = next(filter(lambda x: isinstance(x, figs.King),
+                                 self._get_list_of_figures(color)))
+
+        for ind, piece in enumerate(self._get_list_of_figures(color)):
+            try:
+                self._update_possible_moves(piece._pos)
+            except ImpossibleMove as IM:
+                continue
+
+            for to in self._possible_moves:
+                pos_from = piece._pos
+                capt = self[to]
+                self[to] = self[pos_from]
+                self[pos_from] = None
+                self[to]._pos = to
+
+                if(self._check_for_check(color)):
+                    self[pos_from] = self[to]
+                    self[pos_from]._pos = pos_from
+                    self[to] = capt
+                else:
+                    self[pos_from] = self[to]
+                    self[pos_from]._pos = pos_from
+                    self[to] = capt
+                    return 0
+        return 1
 
     @staticmethod
     def op_color(color):
@@ -111,13 +137,21 @@ class Chess(field):
                 print("Undoing last move")
                 self._undo_move()
 
+        self._render_board()
+        print("Game over")
+        print(f"{self.op_color(self._color_turn)} is victorious!")
+        input("Press enter to exit...")
+
     def _main_loop(self):
         self._render_board()
 
         print(f"King in check: {self._in_check}")
         print(f"Move: {self.move}. It's {self._color_turn}'s turn")
-
-        fr = input("Which piece to move:").lower()
+        
+        if(self.start_seq):
+            fr = self.start_seq.pop()
+        else:
+            fr = input("Which piece to move:").lower()
         if("undo" in fr):
             raise UndoMove();
         if(self[fr] is None):
@@ -127,8 +161,11 @@ class Chess(field):
 
         self._update_possible_moves(fr)
         self._render_board(show_possible=1)
-
-        to = input("Where to move:").lower()
+        
+        if(self.start_seq):
+            to = self.start_seq.pop()
+        else:
+            to = input("Where to move:").lower()
         self._make_move(fr, to)
 
         self._in_check = self._check_for_check(self.op_color(self._color_turn))
@@ -138,9 +175,7 @@ class Chess(field):
                 self._GAME_IN_PROCESS = False
 
 
+
 if __name__ == "__main__":
     game = Chess()
-    #print(game["e2"].moves[1].get_possible("e2", game))
-    #print(game["f3"].moves[0].get_possible("f3", game))
-    # print(game['f3'].moves)
     game.start_game()
