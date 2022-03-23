@@ -70,7 +70,10 @@ class field():
 
     def __getitem__(self, value):
         """ Get field piece using 2 letter string e.g. e4 """
-        return self._field[value[0]][value[1]]
+        try:
+            return self._field[value[0]][value[1]]
+        except IndexError as IE:
+            raise ValueError("Impossible move") 
 
     def __setitem__(self, ind, value):
         self._field[ind[0]][ind[1]] = value

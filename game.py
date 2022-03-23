@@ -18,8 +18,19 @@ class Chess(field):
             self._last_taken = self[to_sq]
             self[to_sq] = self[from_sq]
             self[from_sq] = None
+            self[to_sq]._pos = to_sq
         else:
             raise ValueError("Impossible move")
+
+        if(self._check_for_check(self._color_turn)):
+            self[to_sq], self[from_sq] = self._last_taken, self[to_sq]
+            self[from_sq]._pos = from_sq
+            raise ValueError("ImpossibleMove")
+
+        if('p' in self[to_sq].prefix and not self[to_sq]._been_moved):
+            self[to_sq].moves = self[to_sq].moves[:-1]
+        self[to_sq]._been_moved = 1
+
 
     def _get_list_of_figures(self, color=None):
         all_sq = reduce(lambda x, y: x+y,
@@ -51,7 +62,6 @@ class Chess(field):
         return False
 
     def _check_for_mate(self, color):
-        self._get_list_of_figures("black")
         return 0
 
     @staticmethod
@@ -90,14 +100,7 @@ class Chess(field):
 
         to = input("Where to move:").lower()
         self._make_move(fr, to)
-        if(self._check_for_check(self._color_turn)):
-            self[to], self[fr] = self._last_taken, self[to]
-            raise ValueError("ImpossibleMove")
 
-        if('p' in self[to].prefix and not self[to]._been_moved):
-            self[to].moves = self[to].moves[:-1]
-        self[to]._been_moved = 1
-        self[to]._pos = to
 
         self._in_check = self._check_for_check(self.op_color(self._color_turn))
         self._move_history.append((fr, to))
