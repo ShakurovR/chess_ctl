@@ -1,11 +1,14 @@
 from field import field
+from functools import reduce
+import figure as figs
+
 
 class Chess(field):
     def __init__(self):
         self.move = 1
         self.turn = "white"
         super().__init__()
-        self._move_history = [];
+        self._move_history = []
         self._color_turn = "white"
         self._in_check = False
         self._GAME_IN_PROCESS = True
@@ -17,37 +20,40 @@ class Chess(field):
             self[from_sq] = None
         else:
             raise ValueError("Impossible move")
-    
-    def _update_possible_moves(self, from_sq):
 
-        
+    def _get_list_of_figures(self, color=None):
+        all_sq = reduce(lambda x, y: x+y,
+                        [list(i.values()) for i in self._field.values()])
+        all_sq = list(filter(lambda x: x is not None, all_sq))
+        if(color):
+            return list(filter(lambda x: x._color == color, all_sq))
+        return all_sq
+
+    def _update_possible_moves(self, from_sq):
         self._possible_moves = []
         for piece_move in self[from_sq].moves:
-            self._possible_moves+=piece_move.get_possible(from_sq, self) 
+            self._possible_moves += piece_move.get_possible(from_sq, self)
 
         if(not self._possible_moves):
-            raise   ValueError("Impossible move")
-    
+            raise ValueError("Impossible move")
+
     def _check_for_check(self, color):
-        for row in self._row_names:
-            for col in self._col_names:
-                if(self[col+row]):
-                    if(self[col+row]._cost is None and self[col+row]._color == color):
-                        king_pos = col+row
-                        #print(king_pos)
-                        break
-        for row in self._row_names:
-            for col in self._col_names:
-                if(self[col+row]):
-                    if(self[col+row] and self[col+row]._color != color):
-                        possible_capt = []
-                        for piece_move in self[col+row].moves:
-                            possible_capt+=piece_move.get_possible_capture(col+row, self) 
-                        #print(possible_capt)
-                        if(king_pos in possible_capt):
-                            return True
+        king_piece = next(filter(lambda x: isinstance(x, figs.King),
+                                 self._get_list_of_figures(color)))
+
+        for piece in self._get_list_of_figures(self.op_color(color)):
+            possible_capt = []
+            for piece_move in piece.moves:
+                possible_capt += piece_move.get_possible_capture(
+                    piece._pos, self)
+            if(king_piece._pos in possible_capt):
+                return True
         return False
-    
+
+    def _check_for_mate(self, color):
+        self._get_list_of_figures("black")
+        return 0
+
     @staticmethod
     def op_color(color):
         if(color == "white"):
@@ -63,7 +69,7 @@ class Chess(field):
                 else:
                     self.move += 1
                     self._color_turn = "white"
-                
+
             except ValueError as VE:
                 print("Impossible Move")
             except KeyError as KE:
@@ -85,19 +91,25 @@ class Chess(field):
         to = input("Where to move:").lower()
         self._make_move(fr, to)
         if(self._check_for_check(self._color_turn)):
-            self[to],self[fr] = self._last_taken,self[to]
+            self[to], self[fr] = self._last_taken, self[to]
             raise ValueError("ImpossibleMove")
 
         if('p' in self[to].prefix and not self[to]._been_moved):
             self[to].moves = self[to].moves[:-1]
         self[to]._been_moved = 1
-        self._in_check = self._check_for_check(self.op_color(self._color_turn))
-        self._move_history.append((fr,to))
+        self[to]._pos = to
 
-        
+        self._in_check = self._check_for_check(self.op_color(self._color_turn))
+        self._move_history.append((fr, to))
+
+        if(self._in_check):
+            if(self._check_for_mate(self.op_color(self._color_turn))):
+                self._GAME_IN_PROCESS = False
+
+
 if __name__ == "__main__":
     game = Chess()
     #print(game["e2"].moves[1].get_possible("e2", game))
     #print(game["f3"].moves[0].get_possible("f3", game))
-    #print(game['f3'].moves)
+    # print(game['f3'].moves)
     game.start_game()
