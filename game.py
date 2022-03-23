@@ -3,7 +3,7 @@ from functools import reduce
 import figure as figs
 from moves import Moves_history
 from copy import deepcopy
-
+from moves import ImpossibleMove, UndoMove
 
 class Chess(field):
     def __init__(self):
@@ -26,14 +26,14 @@ class Chess(field):
             self[from_sq] = None
             self[to_sq]._pos = to_sq
         else:
-            raise ValueError("Impossible move")
+            raise ImpossibleMove("Impossible move")
 
         if(self._check_for_check(self._color_turn)):
             self[to_sq] = deepcopy(self._moves_history[-1]["captured_piece"])
             self[from_sq] = deepcopy(self._moves_history[-1]["piece"])
             self._moves_history.pop()
 
-            raise ValueError("ImpossibleMove")
+            raise ImpossibleMove("ImpossibleMove")
 
         if('p' in self[to_sq].prefix and not self[to_sq]._been_moved):
             self[to_sq].moves = self[to_sq].moves[:-1]
@@ -41,7 +41,18 @@ class Chess(field):
         self[to_sq]._been_moved = 1
 
     def _undo_move(self):
-        pass;
+        if(self._color_turn == "white" and self.move == 1):
+            return
+
+        (fr, to), moved_piece, capt_piece = self._moves_history.pop()
+        
+        self[fr] = moved_piece
+        self[to] = capt_piece
+        
+        if(self._color_turn == "white"):
+            self.move-=1
+        self._color_turn = self.op_color(self._color_turn)
+        self._in_check = self._check_for_check(self._color_turn)
 
     def _get_list_of_figures(self, color=None):
         all_sq = reduce(lambda x, y: x+y,
@@ -57,7 +68,7 @@ class Chess(field):
             self._possible_moves += piece_move.get_possible(from_sq, self)
 
         if(not self._possible_moves):
-            raise ValueError("Impossible move")
+            raise ImpossibleMove("Impossible move")
 
     def _check_for_check(self, color):
         king_piece = next(filter(lambda x: isinstance(x, figs.King),
@@ -92,20 +103,27 @@ class Chess(field):
                     self.move += 1
                     self._color_turn = "white"
 
-            except ValueError as VE:
+            except ImpossibleMove as VE:
                 print("Impossible Move")
             except KeyError as KE:
                 print("Ошибка ввода")
+            except UndoMove as UM:
+                print("Undoing last move")
+                self._undo_move()
 
     def _main_loop(self):
         self._render_board()
+
         print(f"King in check: {self._in_check}")
         print(f"Move: {self.move}. It's {self._color_turn}'s turn")
+
         fr = input("Which piece to move:").lower()
+        if("undo" in fr):
+            raise UndoMove();
         if(self[fr] is None):
-            raise ValueError("Impossible move")
+            raise ImpossibleMove("Impossible move")
         if(self[fr]._color != self._color_turn):
-            raise ValueError("Impossible move")
+            raise ImpossibleMove("Impossible move")
 
         self._update_possible_moves(fr)
         self._render_board(show_possible=1)

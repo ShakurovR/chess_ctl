@@ -92,6 +92,14 @@ class Moves_history():
                 "captured_piece": self._captured_pieces[key]}
 
     def pop(self):
-        self._moves.pop()
-        self._moved_pieces.pop()
-        self._captured_pieces.pop()
+        fr_to = self._moves.pop()
+        moved_piece = self._moved_pieces.pop()
+        capt_piece = self._captured_pieces.pop()
+
+        return (fr_to, moved_piece, capt_piece)
+
+class ImpossibleMove(Exception):
+        pass
+
+class UndoMove(Exception):
+    pass
