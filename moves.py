@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 
 class move():
     _col_names = 'abcdefgh'
@@ -71,3 +73,25 @@ class move():
         if(not pos_from[0] == 'a'):
             return self._col_names[self._col_names.find(pos_from[0])-1]+pos_from[1]
         raise IndexError("Out of field")
+
+
+class Moves_history():
+    _moves = []
+    _moved_pieces = []
+    _captured_pieces = []
+
+    def push(self, fr_piece, to_piece, fr, to):
+        self._moves.append((fr, to))
+        self._captured_pieces.append(deepcopy(to_piece))
+        self._moved_pieces.append(deepcopy(fr_piece))
+
+    def __getitem__(self, key):
+        return {"from": self._moves[key][0],
+                "to": self._moves[key][1],
+                "piece": self._moved_pieces[key],
+                "captured_piece": self._captured_pieces[key]}
+
+    def pop(self):
+        self._moves.pop()
+        self._moved_pieces.pop()
+        self._captured_pieces.pop()
