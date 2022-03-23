@@ -1,6 +1,8 @@
 from field import field
 from functools import reduce
 import figure as figs
+from moves import Moves_history
+from copy import deepcopy
 
 
 class Chess(field):
@@ -8,14 +10,18 @@ class Chess(field):
         self.move = 1
         self.turn = "white"
         super().__init__()
-        self._move_history = []
+        self._moves_history = Moves_history()
         self._color_turn = "white"
         self._in_check = False
         self._GAME_IN_PROCESS = True
 
     def _make_move(self, from_sq, to_sq):
         if(to_sq in self._possible_moves):
-            self._last_taken = self[to_sq]
+            self._moves_history.push(self[from_sq],
+                                     self[to_sq],
+                                     from_sq,
+                                     to_sq)
+
             self[to_sq] = self[from_sq]
             self[from_sq] = None
             self[to_sq]._pos = to_sq
@@ -23,14 +29,19 @@ class Chess(field):
             raise ValueError("Impossible move")
 
         if(self._check_for_check(self._color_turn)):
-            self[to_sq], self[from_sq] = self._last_taken, self[to_sq]
-            self[from_sq]._pos = from_sq
+            self[to_sq] = deepcopy(self._moves_history[-1]["captured_piece"])
+            self[from_sq] = deepcopy(self._moves_history[-1]["piece"])
+            self._moves_history.pop()
+
             raise ValueError("ImpossibleMove")
 
         if('p' in self[to_sq].prefix and not self[to_sq]._been_moved):
             self[to_sq].moves = self[to_sq].moves[:-1]
+
         self[to_sq]._been_moved = 1
 
+    def _undo_move(self):
+        pass;
 
     def _get_list_of_figures(self, color=None):
         all_sq = reduce(lambda x, y: x+y,
@@ -62,6 +73,7 @@ class Chess(field):
         return False
 
     def _check_for_mate(self, color):
+        # Not Implemented (yet)
         return 0
 
     @staticmethod
@@ -101,9 +113,7 @@ class Chess(field):
         to = input("Where to move:").lower()
         self._make_move(fr, to)
 
-
         self._in_check = self._check_for_check(self.op_color(self._color_turn))
-        self._move_history.append((fr, to))
 
         if(self._in_check):
             if(self._check_for_mate(self.op_color(self._color_turn))):
