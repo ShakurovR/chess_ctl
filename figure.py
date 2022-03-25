@@ -118,7 +118,10 @@ class King(figure):
              move("ur", 1, 0),
              move("dr", 1, 0),
              move("ul", 1, 0),
-             move("dl", 1, 0)]
+             move("dl", 1, 0),
+             move("rr", 0, 0),
+             move("ll", 0, 0)]
+
 
     _cost = None
 

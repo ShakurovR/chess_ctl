@@ -6,7 +6,8 @@ from copy import deepcopy
 from moves import ImpossibleMove, UndoMove
 
 class Chess(field):
-    start_seq  = ['e2','e4','e7','e5','d1','h5','a7','a6','f1','c4','a6','a5'][::-1]
+    # start_seq  = ['e2','e4','e7','e5','d1','h5','a7','a6','f1','c4','a6','a5'][::-1]
+    start_seq = ['e2','e4','e7','e5','g1','f3','g8','f6','f1','c4','f8','c5'][::-1]
     # start_seq = []
     def __init__(self):
         self.move = 1
@@ -39,6 +40,31 @@ class Chess(field):
 
         if('p' in self[to_sq].prefix and not self[to_sq]._been_moved):
             self[to_sq].moves = self[to_sq].moves[:-1]
+        
+        if('K' in self[to_sq].prefix and not self[to_sq]._been_moved):
+            if(to_sq in ('g1', 'c1', 'g8', 'c8')):
+                if(to_sq[0] == 'g'):
+                    fr_rook = 'h' + to_sq[1]
+                    to_rook = 'f' + to_sq[1]
+                else:
+                    fr_rook = 'a' + to_sq[1]
+                    to_rook = 'd' + to_sq[1]
+                
+                print(fr_rook, to_rook)
+                print(self[fr_rook], self[fr_rook].prefix)
+
+                if((self[fr_rook] is not None) and ("R" in self[fr_rook].prefix)):
+                    self[to_rook] = self[fr_rook]
+                    self[fr_rook] = None
+                    self[to_rook]._pos = to_rook
+                else:
+                    self[to_sq] = deepcopy(self._moves_history[-1]["captured_piece"])
+                    self[from_sq] = deepcopy(self._moves_history[-1]["piece"])
+                    self._moves_history.pop()
+                    print("bruh")
+                    raise ImpossibleMove("ImpossibleMove")
+            self[to_sq].moves = self[to_sq].moves[:-2]
+                    
 
         self[to_sq]._been_moved = 1
 
@@ -131,6 +157,7 @@ class Chess(field):
 
             except ImpossibleMove as VE:
                 print("Impossible Move")
+                input("Press enter to proceed...")
             except KeyError as KE:
                 print("Ошибка ввода")
             except UndoMove as UM:
@@ -152,6 +179,7 @@ class Chess(field):
             fr = self.start_seq.pop()
         else:
             fr = input("Which piece to move:").lower()
+        
         if("undo" in fr):
             raise UndoMove();
         if(self[fr] is None):
@@ -166,6 +194,7 @@ class Chess(field):
             to = self.start_seq.pop()
         else:
             to = input("Where to move:").lower()
+
         self._make_move(fr, to)
 
         self._in_check = self._check_for_check(self.op_color(self._color_turn))
