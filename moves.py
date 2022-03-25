@@ -79,24 +79,54 @@ class Moves_history():
     _moves = []
     _moved_pieces = []
     _captured_pieces = []
+    _is_castling = []
+    _castled_rook_fr_to = []
 
-    def push(self, fr_piece, to_piece, fr, to):
+    def push(self, fr_piece, to_piece, fr, to, is_castling = False, rook_fr = None, rook_to = None):
         self._moves.append((fr, to))
         self._captured_pieces.append(deepcopy(to_piece))
         self._moved_pieces.append(deepcopy(fr_piece))
+        self._is_castling.append(deepcopy(is_castling))
+        self._castled_rook_fr_to.append([rook_fr, rook_to])
 
     def __getitem__(self, key):
         return {"from": self._moves[key][0],
                 "to": self._moves[key][1],
                 "piece": self._moved_pieces[key],
-                "captured_piece": self._captured_pieces[key]}
+                "captured_piece": self._captured_pieces[key],
+                "is_castling": self._is_castling[key],
+                "castle_rook_from": self._castled_rook_fr_to[0],
+                "castle_rook_to": self._castled_rook_fr_to[1]}
+
+    def __setitem__(self, _slice_object, value):
+        index = _slice_object.start
+        key = _slice_object.stop
+
+        if(key == "from"):
+            self._moves[index][0] = value
+        elif(key == "to"):
+            self._moves[index][1] = value
+        elif(key == "piece"):
+            self._moved_pieces[index] = value
+        elif(key == "captured_piece"):
+            self._captured_pieces[index] = value
+        elif(key == "is_castling"):
+            self._is_castling[index] = value
+        elif(key == "castle_rook_from"):
+            self._castled_rook_fr_to[index][0] = value
+        elif(key == "castle_rook_to"):
+            self._castled_rook_fr_to[index][1] = value
+        else:
+            raise KeyError()
+        
 
     def pop(self):
         fr_to = self._moves.pop()
         moved_piece = self._moved_pieces.pop()
         capt_piece = self._captured_pieces.pop()
-
-        return (fr_to, moved_piece, capt_piece)
+        is_castling = self._is_castling.pop()
+        castle_rook_fr_to = self._castled_rook_fr_to.pop()
+        return (fr_to, moved_piece, capt_piece, is_castling, castle_rook_fr_to)
 
 class ImpossibleMove(Exception):
     pass

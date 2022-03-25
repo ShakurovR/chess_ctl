@@ -53,10 +53,16 @@ class Chess(field):
                 print(fr_rook, to_rook)
                 print(self[fr_rook], self[fr_rook].prefix)
 
-                if((self[fr_rook] is not None) and ("R" in self[fr_rook].prefix)):
+                if((self[fr_rook] is not None) and ("R" in self[fr_rook].prefix) and \
+                        not self[fr_rook]._been_moved):
                     self[to_rook] = self[fr_rook]
                     self[fr_rook] = None
                     self[to_rook]._pos = to_rook
+                    self._moves_history[-1:"is_castling"] = True
+                    self._moves_history[-1:"castle_rook_from"] = fr_rook
+                    self._moves_history[-1:"castle_rook_to"] = to_rook
+                    print("was here!")
+                    input()
                 else:
                     self[to_sq] = deepcopy(self._moves_history[-1]["captured_piece"])
                     self[from_sq] = deepcopy(self._moves_history[-1]["piece"])
@@ -72,11 +78,19 @@ class Chess(field):
         if(self._color_turn == "white" and self.move == 1):
             return
 
-        (fr, to), moved_piece, capt_piece = self._moves_history.pop()
+        ( (fr, to), moved_piece, capt_piece, is_castle, (fr_rook, to_rook) ) = self._moves_history.pop()
+
+        print(fr, to, moved_piece, capt_piece, is_castle, fr_rook, to_rook) 
+        input("was here too!")
         
         self[fr] = moved_piece
         self[to] = capt_piece
         
+        if(is_castle):
+            self[fr_rook] = self[to_rook]
+            self[to_rook] = None
+            self[fr_rook]._pos = fr_rook
+
         if(self._color_turn == "white"):
             self.move-=1
         self._color_turn = self.op_color(self._color_turn)
