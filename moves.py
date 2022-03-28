@@ -133,3 +133,6 @@ class ImpossibleMove(Exception):
 
 class UndoMove(Exception):
     pass
+
+class ExitGame(Exception):
+    pass

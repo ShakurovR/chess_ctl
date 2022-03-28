@@ -20,7 +20,7 @@ class Pawn():
     _been_moved = 0
     _cost = 1
 
-    def __init__(self, color, pos, pref):
+    def __init__(self, color, pos, pref='p'):
         self._color = color
         self._pos = pos
         pawn_dir = "d"
@@ -43,7 +43,7 @@ class Rook(figure):
              move("l")]
     _cost = 5
 
-    def __init__(self, color, pos, pref):
+    def __init__(self, color, pos, pref='R'):
         self._color = color
         self._pos = pos
         if(color == "white"):
@@ -63,7 +63,7 @@ class Knight():
              move("drr", True, False)]
     _cost = 3
 
-    def __init__(self, color, pos, pref):
+    def __init__(self, color, pos, pref='N'):
         self._color = color
         self._pos = pos
         if(color == "white"):
@@ -80,7 +80,7 @@ class Bishop(figure):
 
     _cost = 3
 
-    def __init__(self, color, pos, pref):
+    def __init__(self, color, pos, pref='B'):
         self._color = color
         self._pos = pos
         if(color == "white"):
@@ -101,7 +101,7 @@ class Queen(figure):
 
     _cost = 10
 
-    def __init__(self, color, pos, pref):
+    def __init__(self, color, pos, pref='Q'):
         self._color = color
         self._pos = pos
         if(color == "white"):
@@ -125,7 +125,7 @@ class King(figure):
 
     _cost = None
 
-    def __init__(self, color, pos, pref):
+    def __init__(self, color, pos, pref='K'):
         self._color = color
         self._pos = pos
         if(color == "white"):

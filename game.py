@@ -3,12 +3,13 @@ from functools import reduce
 import figure as figs
 from moves import Moves_history
 from copy import deepcopy
-from moves import ImpossibleMove, UndoMove
+from moves import ImpossibleMove, UndoMove, ExitGame
 
 class Chess(field):
     # start_seq  = ['e2','e4','e7','e5','d1','h5','a7','a6','f1','c4','a6','a5'][::-1]
-    start_seq = ['e2','e4','e7','e5','g1','f3','g8','f6','f1','c4','f8','c5'][::-1]
-    # start_seq = []
+    # start_seq = ['e2','e4','e7','e5','g1','f3','g8','f6','f1','c4','f8','c5'][::-1]
+    # start_seq = ['h2','h4','g7','g5','h4','g5','e7','e5','g5','g6','e8','e7','g6','g7','g8','f6'][::-1]
+    start_seq = []
     def __init__(self):
         self.move = 1
         self.turn = "white"
@@ -31,16 +32,19 @@ class Chess(field):
         else:
             raise ImpossibleMove("Impossible move")
 
+        # Make sure your King is not in check after move
         if(self._check_for_check(self._color_turn)):
             self[to_sq] = deepcopy(self._moves_history[-1]["captured_piece"])
             self[from_sq] = deepcopy(self._moves_history[-1]["piece"])
             self._moves_history.pop()
 
             raise ImpossibleMove("ImpossibleMove")
-
+        
+        # Remove initial 2-square forward moves from Pawn
         if('p' in self[to_sq].prefix and not self[to_sq]._been_moved):
             self[to_sq].moves = self[to_sq].moves[:-1]
         
+        # Check and process castling
         if('K' in self[to_sq].prefix and not self[to_sq]._been_moved):
             if(to_sq in ('g1', 'c1', 'g8', 'c8')):
                 if(to_sq[0] == 'g'):
@@ -61,17 +65,17 @@ class Chess(field):
                     self._moves_history[-1:"is_castling"] = True
                     self._moves_history[-1:"castle_rook_from"] = fr_rook
                     self._moves_history[-1:"castle_rook_to"] = to_rook
-                    print("was here!")
-                    input()
                 else:
                     self[to_sq] = deepcopy(self._moves_history[-1]["captured_piece"])
                     self[from_sq] = deepcopy(self._moves_history[-1]["piece"])
                     self._moves_history.pop()
-                    print("bruh")
                     raise ImpossibleMove("ImpossibleMove")
             self[to_sq].moves = self[to_sq].moves[:-2]
                     
-
+        # Check for Pawn promotion
+        if('p' in self[to_sq].prefix and to_sq[1] in ('1','8')):
+            self[to_sq] = figs.Queen(self[to_sq]._color,
+                                     to_sq)
         self[to_sq]._been_moved = 1
 
     def _undo_move(self):
@@ -80,9 +84,6 @@ class Chess(field):
 
         ( (fr, to), moved_piece, capt_piece, is_castle, (fr_rook, to_rook) ) = self._moves_history.pop()
 
-        print(fr, to, moved_piece, capt_piece, is_castle, fr_rook, to_rook) 
-        input("was here too!")
-        
         self[fr] = moved_piece
         self[to] = capt_piece
         
@@ -111,6 +112,20 @@ class Chess(field):
 
         if(not self._possible_moves):
             raise ImpossibleMove("Impossible move")
+
+    def _is_possible_move(self, from_sq, to_sq):
+        try:
+            self._make_move(from_sq, to_sq)
+            if(self._color_turn == "white"):
+                self._color_turn = "black"
+            else:
+                self.move += 1
+                self._color_turn = "white"
+            self._undo_move()
+        except ImpossibleMove as IM:
+            return False
+        return True
+
 
     def _check_for_check(self, color):
         king_piece = next(filter(lambda x: isinstance(x, figs.King),
@@ -177,6 +192,9 @@ class Chess(field):
             except UndoMove as UM:
                 print("Undoing last move")
                 self._undo_move()
+            except ExitGame as EG:
+                print("Exiting the game")
+                return
 
         self._render_board()
         print("Game over")
@@ -196,12 +214,22 @@ class Chess(field):
         
         if("undo" in fr):
             raise UndoMove();
+        if("exit" in fr):
+            self._GAME_IN_PROCESS = False
+            raise ExitGame()
+        if(not fr):
+            raise ImpossibleMove("ImpossibleMove")
         if(self[fr] is None):
             raise ImpossibleMove("Impossible move")
         if(self[fr]._color != self._color_turn):
             raise ImpossibleMove("Impossible move")
 
         self._update_possible_moves(fr)
+        for ind, to_move in reversed(list(enumerate(self._possible_moves))):
+            if(not self._is_possible_move(fr, to_move)):
+                del self._possible_moves[ind]
+        if(not self._possible_moves):
+            raise ImpossibleMove("Impossible move")
         self._render_board(show_possible=1)
         
         if(self.start_seq):
