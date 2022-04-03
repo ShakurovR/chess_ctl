@@ -4,35 +4,27 @@ from moves import move
 class figure():
     """ Base class for chess piece """
 
-    def __init__(self, cost, color, pos, pref):
-        self._cost = cost
+    def __init__(self, color, pos, pref):
         self._color = color
         self._pos = pos
         if(color == "white"):
             pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
         self.prefix = ' '+pref+' '
 
-    def move(self, move_to):
-        pass
-
-
-class Pawn():
+class Pawn(figure):
     _been_moved = 0
     _cost = 1
 
     def __init__(self, color, pos, pref='p'):
-        self._color = color
-        self._pos = pos
         pawn_dir = "d"
         if(color == "white"):
             pawn_dir = "u"
-            pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
-        self.prefix = ' '+pref+' '
-
         self.moves = [move(pawn_dir, False, False),
-                      move(pawn_dir + "r", True, False, True),
-                      move(pawn_dir + "l", True, False, True),
-                      move(pawn_dir*2, False, False)]
+                 move(pawn_dir + "r", True, False, True),
+                 move(pawn_dir + "l", True, False, True),
+                 move(pawn_dir*2, False, False)]
+        super().__init__(color, pos, pref)
+
 
 
 class Rook(figure):
@@ -44,14 +36,9 @@ class Rook(figure):
     _cost = 5
 
     def __init__(self, color, pos, pref='R'):
-        self._color = color
-        self._pos = pos
-        if(color == "white"):
-            pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
-        self.prefix = ' '+pref+' '
+        super().__init__(color, pos, pref)
 
-
-class Knight():
+class Knight(figure):
     _been_moved = 0
     moves = [move("uur", True, False),
              move("uul", True, False),
@@ -64,11 +51,7 @@ class Knight():
     _cost = 3
 
     def __init__(self, color, pos, pref='N'):
-        self._color = color
-        self._pos = pos
-        if(color == "white"):
-            pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
-        self.prefix = ' '+pref+' '
+        super().__init__(color, pos, pref)
 
 
 class Bishop(figure):
@@ -81,12 +64,7 @@ class Bishop(figure):
     _cost = 3
 
     def __init__(self, color, pos, pref='B'):
-        self._color = color
-        self._pos = pos
-        if(color == "white"):
-            pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
-        self.prefix = ' '+pref+' '
-
+        super().__init__(color, pos, pref)
 
 class Queen(figure):
     _been_moved = 0
@@ -102,11 +80,7 @@ class Queen(figure):
     _cost = 10
 
     def __init__(self, color, pos, pref='Q'):
-        self._color = color
-        self._pos = pos
-        if(color == "white"):
-            pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
-        self.prefix = ' '+pref+' '
+        super().__init__(color, pos, pref)
 
 
 class King(figure):
@@ -126,8 +100,4 @@ class King(figure):
     _cost = None
 
     def __init__(self, color, pos, pref='K'):
-        self._color = color
-        self._pos = pos
-        if(color == "white"):
-            pref = "\u001b[31m\u001b[1m\u001b[4m"+pref+"\u001b[22m\u001b[24m"
-        self.prefix = ' '+pref+' '
+        super().__init__(color, pos, pref)
