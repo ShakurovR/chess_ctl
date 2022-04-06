@@ -5,6 +5,7 @@ from moves import Moves_history
 from copy import deepcopy
 from moves import ImpossibleMove, UndoMove, ExitGame
 
+#some change
 class Chess(field):
     # start_seq  = ['e2','e4','e7','e5','d1','h5','a7','a6','f1','c4','a6','a5'][::-1]
     # start_seq = ['e2','e4','e7','e5','g1','f3','g8','f6','f1','c4','f8','c5'][::-1]
